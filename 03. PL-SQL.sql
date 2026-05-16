@@ -1,8 +1,6 @@
 SET SERVEROUTPUT ON;
 
-
--- ZADANIE 1
-
+-- Zadanie 1
 DECLARE
     liczba_kursantow number;
     liczba_kursow number;
@@ -18,9 +16,7 @@ BEGIN
 END;
 /
 
-
--- ZADANIE 2
-
+-- Zadanie 2
 DECLARE
     suma number;
 BEGIN
@@ -33,9 +29,7 @@ BEGIN
 END;
 /
 
-
--- ZADANIE 3
-
+-- Zadanie 3
 DECLARE
     miasto varchar2(30);
     liczba number;
@@ -57,9 +51,7 @@ BEGIN
 END;
 /
 
-
--- ZADANIE 4
-
+-- Zadanie 4
 BEGIN
     for r in (
         select k.kurs_id, ro.nazwa, ro.godz, ro.cena, w.imie, w.nazwisko
@@ -73,9 +65,7 @@ BEGIN
 END;
 /
 
-
--- ZADANIE 5
-
+-- Zadanie 5
 create or replace procedure raport_umow_miasto(p_miasto in varchar2)
 is
     liczba number;
@@ -100,9 +90,7 @@ begin
 end;
 /
 
-
--- ZADANIE 6
-
+-- Zadanie 6
 create or replace function wartosc_kursu(p_kurs_id in number)
 return number
 is
@@ -125,9 +113,7 @@ begin
 end;
 /
 
-
--- ZADANIE 7
-
+-- Zadanie 7
 create or replace procedure pokaz_kursanta(p_kursant_id in number)
 is
     imie_kursanta varchar2(20);
@@ -149,9 +135,7 @@ begin
 end;
 /
 
-
--- ZADANIE 8
-
+-- Zadanie 8
 declare
     cursor c_umowy is
         select u.umowa_id, k2.imie, k2.nazwisko, r.nazwa, r.cena
@@ -177,9 +161,7 @@ begin
 end;
 /
 
-
--- ZADANIE 9
-
+-- Zadanie 9
 create or replace procedure raport_umow_szczecin
 is
     cursor c_szczecin is
@@ -211,9 +193,7 @@ begin
 end;
 /
 
-
--- ZADANIE 10
-
+-- Zadanie 10
 create or replace procedure raport_uczelni
 is
     bydgoszcz_liczba number;
