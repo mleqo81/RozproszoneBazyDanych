@@ -2,277 +2,346 @@ SET SERVEROUTPUT ON;
 
 -- Zadanie 1
 DECLARE
-    liczba_kursantow number;
-    liczba_kursow number;
-    liczba_wykladowcow number;
+liczba_kursantow NUMBER;
+liczba_kursow NUMBER;
+liczba_wykladowcow NUMBER;
 BEGIN
-    select count(*) into liczba_kursantow from kursanci;
-    select count(*) into liczba_kursow from kursy;
-    select count(*) into liczba_wykladowcow from wykladowcy;
+SELECT COUNT(*) INTO liczba_kursantow FROM kursanci;
+SELECT COUNT(*) INTO liczba_kursow FROM kursy;
+SELECT COUNT(*) INTO liczba_wykladowcow FROM wykladowcy;
 
-    dbms_output.put_line('Liczba kursantow: ' || liczba_kursantow);
-    dbms_output.put_line('Liczba kursow: ' || liczba_kursow);
-    dbms_output.put_line('Liczba wykladowcow: ' || liczba_wykladowcow);
+DBMS_OUTPUT.PUT_LINE('Liczba kursantow: ' || liczba_kursantow);
+DBMS_OUTPUT.PUT_LINE('Liczba kursow: ' || liczba_kursow);
+DBMS_OUTPUT.PUT_LINE('Liczba wykladowcow: ' || liczba_wykladowcow);
 END;
 /
 
 -- Zadanie 2
 DECLARE
-    suma number;
+suma NUMBER;
 BEGIN
-    select sum(r.cena) into suma
-    from umowy u, kursy k, rodzaje r
-    where u.kurs_id = k.kurs_id
-    and k.rodzaj_id = r.rodzaj_id;
+SELECT SUM(r.cena)
+INTO suma
+FROM umowy u,
+kursy  k,
+rodzaje r
+WHERE u.kurs_id = k.kurs_id
+AND k.rodzaj_id = r.rodzaj_id;
 
-    dbms_output.put_line('Laczna wartosc umow dla BYDGOSZCZY: ' || suma || ' zl');
+DBMS_OUTPUT.PUT_LINE('Laczna wartosc umow dla BYDGOSZCZY: ' || suma || ' zl');
 END;
 /
 
 -- Zadanie 3
 DECLARE
-    miasto varchar2(30);
-    liczba number;
+miasto VARCHAR2(30);
+liczba NUMBER;
 BEGIN
-    miasto := 'BYDGOSZCZ';
+miasto := 'BYDGOSZCZ';
 
-    select count(*) into liczba
-    from umowy;
+SELECT COUNT(*)
+INTO liczba
+FROM umowy;
 
-    if liczba = 0 then
-        dbms_output.put_line('Brak umow dla miasta');
-    elsif liczba < 50 then
-        dbms_output.put_line('Mala liczba umow');
-    elsif liczba <= 100 then
-        dbms_output.put_line('Srednia liczba umow');
-    else
-        dbms_output.put_line('Duza liczba umow');
-    end if;
+IF liczba = 0 THEN
+DBMS_OUTPUT.PUT_LINE('Brak umow dla miasta');
+ELSIF liczba < 50 THEN
+DBMS_OUTPUT.PUT_LINE('Mala liczba umow');
+ELSIF liczba <= 100 THEN
+DBMS_OUTPUT.PUT_LINE('Srednia liczba umow');
+ELSE
+DBMS_OUTPUT.PUT_LINE('Duza liczba umow');
+END IF;
 END;
 /
 
 -- Zadanie 4
 BEGIN
-    for r in (
-        select k.kurs_id, ro.nazwa, ro.godz, ro.cena, w.imie, w.nazwisko
-        from kursy k, rodzaje ro, wykladowcy w
-        where k.rodzaj_id = ro.rodzaj_id
-        and k.wykladowca_id = w.wykladowca_id
-    )
-    loop
-        dbms_output.put_line('Kurs ' || r.kurs_id || ': ' || r.nazwa || ', ' || r.godz || 'h, ' || r.cena || ' zl, prowadzacy: ' || r.imie || ' ' || r.nazwisko);
-    end loop;
+FOR r IN (
+SELECT k.kurs_id,
+ro.nazwa,
+ro.godz,
+ro.cena,
+w.imie,
+w.nazwisko
+FROM kursy      k,
+rodzaje    ro,
+wykladowcy w
+WHERE k.rodzaj_id = ro.rodzaj_id
+AND k.wykladowca_id = w.wykladowca_id
+) LOOP
+DBMS_OUTPUT.PUT_LINE(
+'Kurs ' || r.kurs_id || ': ' || r.nazwa || ', '
+|| r.godz || 'h, ' || r.cena || ' zl, prowadzacy: '
+|| r.imie || ' ' || r.nazwisko
+);
+END LOOP;
 END;
 /
 
 -- Zadanie 5
-create or replace procedure raport_umow_miasto(p_miasto in varchar2)
-is
-    liczba number;
-    suma number;
-    srednia number;
-begin
-    select count(*), sum(r.cena), avg(r.cena)
-    into liczba, suma, srednia
-    from umowy u, kursy k, rodzaje r
-    where u.kurs_id = k.kurs_id
-    and k.rodzaj_id = r.rodzaj_id;
+CREATE OR REPLACE PROCEDURE raport_umow_miasto (
+p_miasto IN VARCHAR2
+) IS
+liczba NUMBER;
+suma NUMBER;
+srednia NUMBER;
+BEGIN
+SELECT COUNT(*),
+SUM(r.cena),
+AVG(r.cena)
+INTO liczba,
+suma,
+srednia
+FROM umowy   u,
+kursy   k,
+rodzaje r
+WHERE u.kurs_id = k.kurs_id
+AND k.rodzaj_id = r.rodzaj_id;
 
-    dbms_output.put_line('Raport dla miasta: ' || p_miasto);
-    dbms_output.put_line('Liczba umow: ' || liczba);
-    dbms_output.put_line('Laczna wartosc umow: ' || suma || ' zl');
-    dbms_output.put_line('Srednia wartosc umowy: ' || round(srednia, 2) || ' zl');
-end;
+DBMS_OUTPUT.PUT_LINE('Raport dla miasta: ' || p_miasto);
+DBMS_OUTPUT.PUT_LINE('Liczba umow: ' || liczba);
+DBMS_OUTPUT.PUT_LINE('Laczna wartosc umow: ' || suma || ' zl');
+DBMS_OUTPUT.PUT_LINE('Srednia wartosc umowy: ' || ROUND(srednia, 2) || ' zl');
+END;
 /
 
-begin
-    raport_umow_miasto('BYDGOSZCZ');
-end;
+BEGIN
+raport_umow_miasto('BYDGOSZCZ');
+END;
 /
 
 -- Zadanie 6
-create or replace function wartosc_kursu(p_kurs_id in number)
-return number
-is
-    cena number;
-begin
-    select r.cena into cena
-    from kursy k, rodzaje r
-    where k.rodzaj_id = r.rodzaj_id
-    and k.kurs_id = p_kurs_id;
+CREATE OR REPLACE FUNCTION wartosc_kursu (
+p_kurs_id IN NUMBER
+) RETURN NUMBER IS
+cena NUMBER;
+BEGIN
+SELECT r.cena
+INTO cena
+FROM kursy   k,
+rodzaje r
+WHERE k.rodzaj_id = r.rodzaj_id
+AND k.kurs_id = p_kurs_id;
 
-    return cena;
-end;
+RETURN cena;
+END;
 /
 
-declare
-    cena number;
-begin
-    cena := wartosc_kursu(1);
-    dbms_output.put_line('Cena kursu: ' || cena);
-end;
+DECLARE
+cena NUMBER;
+BEGIN
+cena := wartosc_kursu(1);
+DBMS_OUTPUT.PUT_LINE('Cena kursu: ' || cena);
+END;
 /
 
 -- Zadanie 7
-create or replace procedure pokaz_kursanta(p_kursant_id in number)
-is
-    imie_kursanta varchar2(20);
-    nazwisko_kursanta varchar2(30);
-begin
-    select imie, nazwisko into imie_kursanta, nazwisko_kursanta
-    from kursanci
-    where kursant_id = p_kursant_id;
+CREATE OR REPLACE PROCEDURE pokaz_kursanta (
+p_kursant_id IN NUMBER
+) IS
+imie_kursanta     VARCHAR2(20);
+nazwisko_kursanta VARCHAR2(30);
+BEGIN
+SELECT imie,
+nazwisko
+INTO imie_kursanta,
+nazwisko_kursanta
+FROM kursanci
+WHERE kursant_id = p_kursant_id;
 
-    dbms_output.put_line('Kursant: ' || imie_kursanta || ' ' || nazwisko_kursanta);
-exception
-    when no_data_found then
-        dbms_output.put_line('Nie znaleziono kursanta o ID: ' || p_kursant_id);
-end;
+DBMS_OUTPUT.PUT_LINE('Kursant: ' || imie_kursanta || ' ' || nazwisko_kursanta);
+EXCEPTION
+WHEN NO_DATA_FOUND THEN
+DBMS_OUTPUT.PUT_LINE('Nie znaleziono kursanta o ID: ' || p_kursant_id);
+END;
 /
 
-begin
-    pokaz_kursanta(1000);
-end;
+BEGIN
+pokaz_kursanta(1000);
+END;
 /
 
 -- Zadanie 8
-declare
-    cursor c_umowy is
-        select u.umowa_id, k2.imie, k2.nazwisko, r.nazwa, r.cena
-        from umowy u, kursanci k2, kursy k, rodzaje r
-        where u.kursant_id = k2.kursant_id
-        and u.kurs_id = k.kurs_id
-        and k.rodzaj_id = r.rodzaj_id;
+DECLARE
+CURSOR c_umowy IS
+SELECT u.umowa_id,
+k2.imie,
+k2.nazwisko,
+r.nazwa,
+r.cena
+FROM umowy    u,
+kursanci k2,
+kursy    k,
+rodzaje  r
+WHERE u.kursant_id = k2.kursant_id
+AND u.kurs_id = k.kurs_id
+AND k.rodzaj_id = r.rodzaj_id;
 
-    umowa_id umowy.umowa_id%type;
-    imie kursanci.imie%type;
-    nazwisko kursanci.nazwisko%type;
-    nazwa rodzaje.nazwa%type;
-    cena rodzaje.cena%type;
-begin
-    open c_umowy;
-    loop
-        fetch c_umowy into umowa_id, imie, nazwisko, nazwa, cena;
-        exit when c_umowy%notfound;
+umowa_id umowy.umowa_id%TYPE;
+imie kursanci.imie%TYPE;
+nazwisko kursanci.nazwisko%TYPE;
+nazwa rodzaje.nazwa%TYPE;
+cena rodzaje.cena%TYPE;
+BEGIN
+OPEN c_umowy;
+LOOP
+FETCH c_umowy INTO umowa_id, imie, nazwisko, nazwa, cena;
+EXIT WHEN c_umowy%NOTFOUND;
 
-        dbms_output.put_line('Umowa ' || umowa_id || ' | ' || imie || ' ' || nazwisko || ' | ' || nazwa || ' | ' || cena || ' zl');
-    end loop;
-    close c_umowy;
-end;
+DBMS_OUTPUT.PUT_LINE(
+'Umowa ' || umowa_id || ' | ' || imie || ' ' || nazwisko
+|| ' | ' || nazwa || ' | ' || cena || ' zl'
+);
+END LOOP;
+CLOSE c_umowy;
+END;
 /
 
 -- Zadanie 9
-create or replace procedure raport_umow_szczecin
-is
-    cursor c_szczecin is
-        select u.umowa_id, mk.imie, mk.nazwisko, mr.nazwa, mr.cena
-        from umowy u, mv_kursanci_filia mk, mv_kursy_filia k, mv_rodzaje_filia mr
-        where u.kursant_id = mk.kursant_id
-        and u.kurs_id = k.kurs_id
-        and k.rodzaj_id = mr.rodzaj_id;
+CREATE OR REPLACE PROCEDURE raport_umow_szczecin IS
+CURSOR c_szczecin IS
+SELECT u.umowa_id,
+mk.imie,
+mk.nazwisko,
+mr.nazwa,
+mr.cena
+FROM umowy           u,
+mv_kursanci_filia mk,
+mv_kursy_filia    k,
+mv_rodzaje_filia  mr
+WHERE u.kursant_id = mk.kursant_id
+AND u.kurs_id = k.kurs_id
+AND k.rodzaj_id = mr.rodzaj_id;
 
-    umowa_id umowy.umowa_id%type;
-    imie varchar2(20);
-    nazwisko varchar2(30);
-    nazwa varchar2(30);
-    cena number;
-begin
-    open c_szczecin;
-    loop
-        fetch c_szczecin into umowa_id, imie, nazwisko, nazwa, cena;
-        exit when c_szczecin%notfound;
+umowa_id umowy.umowa_id%TYPE;
+imie VARCHAR2(20);
+nazwisko VARCHAR2(30);
+nazwa VARCHAR2(30);
+cena NUMBER;
+BEGIN
+OPEN c_szczecin;
+LOOP
+FETCH c_szczecin INTO umowa_id, imie, nazwisko, nazwa, cena;
+EXIT WHEN c_szczecin%NOTFOUND;
 
-        dbms_output.put_line('Umowa ' || umowa_id || ' | ' || imie || ' ' || nazwisko || ' | ' || nazwa || ' | ' || cena || ' zl | SZCZECIN');
-    end loop;
-    close c_szczecin;
-end;
+DBMS_OUTPUT.PUT_LINE(
+'Umowa ' || umowa_id || ' | ' || imie || ' ' || nazwisko
+|| ' | ' || nazwa || ' | ' || cena || ' zl | SZCZECIN'
+);
+END LOOP;
+CLOSE c_szczecin;
+END;
 /
 
-begin
-    raport_umow_szczecin;
-end;
+BEGIN
+raport_umow_szczecin;
+END;
 /
 
 -- Zadanie 10
-create or replace procedure raport_uczelni
-is
-    bydgoszcz_liczba number;
-    bydgoszcz_suma number;
-    bydgoszcz_najdrozszy varchar2(30);
-    bydgoszcz_najpop varchar2(30);
+CREATE OR REPLACE PROCEDURE raport_uczelni IS
+bydgoszcz_liczba NUMBER;
+bydgoszcz_suma NUMBER;
+bydgoszcz_najdrozszy VARCHAR2(30);
+bydgoszcz_najpop VARCHAR2(30);
 
-    szczecin_liczba number;
-    szczecin_suma number;
-    szczecin_najdrozszy varchar2(30);
-    szczecin_najpop varchar2(30);
-begin
-    select count(*), sum(r.cena)
-    into bydgoszcz_liczba, bydgoszcz_suma
-    from umowy u, kursy k, rodzaje r
-    where u.kurs_id = k.kurs_id
-    and k.rodzaj_id = r.rodzaj_id;
+szczecin_liczba NUMBER;
+szczecin_suma NUMBER;
+szczecin_najdrozszy VARCHAR2(30);
+szczecin_najpop VARCHAR2(30);
+BEGIN
+SELECT COUNT(*),
+SUM(r.cena)
+INTO bydgoszcz_liczba,
+bydgoszcz_suma
+FROM umowy   u,
+kursy   k,
+rodzaje r
+WHERE u.kurs_id = k.kurs_id
+AND k.rodzaj_id = r.rodzaj_id;
 
-    select r.nazwa into bydgoszcz_najdrozszy
-    from rodzaje r
-    where r.cena = (select max(cena) from rodzaje)
-    and rownum = 1;
+SELECT r.nazwa
+INTO bydgoszcz_najdrozszy
+FROM rodzaje r
+WHERE r.cena = (
+SELECT MAX(cena) FROM rodzaje
+)
+AND ROWNUM = 1;
 
-    select r.nazwa into bydgoszcz_najpop
-    from rodzaje r, kursy k
-    where k.rodzaj_id = r.rodzaj_id
-    and k.kurs_id = (
-        select kurs_id from (
-            select kurs_id, count(*) ile
-            from umowy
-            group by kurs_id
-            order by ile desc
-        ) where rownum = 1
-    );
+SELECT r.nazwa
+INTO bydgoszcz_najpop
+FROM rodzaje r,
+kursy   k
+WHERE k.rodzaj_id = r.rodzaj_id
+AND k.kurs_id = (
+SELECT kurs_id
+FROM (
+SELECT kurs_id,
+COUNT(*) ile
+FROM umowy
+GROUP BY kurs_id
+ORDER BY ile DESC
+)
+WHERE ROWNUM = 1
+);
 
-    select count(*), sum(mr.cena)
-    into szczecin_liczba, szczecin_suma
-    from umowy u, mv_kursy_filia k, mv_rodzaje_filia mr
-    where u.kurs_id = k.kurs_id
-    and k.rodzaj_id = mr.rodzaj_id;
+SELECT COUNT(*),
+SUM(mr.cena)
+INTO szczecin_liczba,
+szczecin_suma
+FROM umowy           u,
+mv_kursy_filia    k,
+mv_rodzaje_filia  mr
+WHERE u.kurs_id = k.kurs_id
+AND k.rodzaj_id = mr.rodzaj_id;
 
-    select nazwa into szczecin_najdrozszy
-    from mv_rodzaje_filia
-    where cena = (select max(cena) from mv_rodzaje_filia)
-    and rownum = 1;
+SELECT nazwa
+INTO szczecin_najdrozszy
+FROM mv_rodzaje_filia
+WHERE cena = (
+SELECT MAX(cena) FROM mv_rodzaje_filia
+)
+AND ROWNUM = 1;
 
-    select mr.nazwa into szczecin_najpop
-    from mv_rodzaje_filia mr, mv_kursy_filia k
-    where k.rodzaj_id = mr.rodzaj_id
-    and k.kurs_id = (
-        select kurs_id from (
-            select kurs_id, count(*) ile
-            from umowy
-            group by kurs_id
-            order by ile desc
-        ) where rownum = 1
-    );
+SELECT mr.nazwa
+INTO szczecin_najpop
+FROM mv_rodzaje_filia mr,
+mv_kursy_filia   k
+WHERE k.rodzaj_id = mr.rodzaj_id
+AND k.kurs_id = (
+SELECT kurs_id
+FROM (
+SELECT kurs_id,
+COUNT(*) ile
+FROM umowy
+GROUP BY kurs_id
+ORDER BY ile DESC
+)
+WHERE ROWNUM = 1
+);
 
-    dbms_output.put_line('RAPORT UCZELNI');
-    dbms_output.put_line('');
-    dbms_output.put_line('Miasto: BYDGOSZCZ');
-    dbms_output.put_line('Liczba umow: ' || bydgoszcz_liczba);
-    dbms_output.put_line('Laczna wartosc umow: ' || bydgoszcz_suma || ' zl');
-    dbms_output.put_line('Najdrozszy kurs: ' || bydgoszcz_najdrozszy);
-    dbms_output.put_line('Najpopularniejszy kurs: ' || bydgoszcz_najpop);
-    dbms_output.put_line('');
-    dbms_output.put_line('Miasto: SZCZECIN');
-    dbms_output.put_line('Liczba umow: ' || szczecin_liczba);
-    dbms_output.put_line('Laczna wartosc umow: ' || szczecin_suma || ' zl');
-    dbms_output.put_line('Najdrozszy kurs: ' || szczecin_najdrozszy);
-    dbms_output.put_line('Najpopularniejszy kurs: ' || szczecin_najpop);
-    dbms_output.put_line('');
-    dbms_output.put_line('PODSUMOWANIE');
-    dbms_output.put_line('Liczba wszystkich umow: ' || (bydgoszcz_liczba + szczecin_liczba));
-    dbms_output.put_line('Laczna wartosc wszystkich umow: ' || (bydgoszcz_suma + szczecin_suma) || ' zl');
-end;
+DBMS_OUTPUT.PUT_LINE('RAPORT UCZELNI');
+DBMS_OUTPUT.PUT_LINE('');
+DBMS_OUTPUT.PUT_LINE('Miasto: BYDGOSZCZ');
+DBMS_OUTPUT.PUT_LINE('Liczba umow: ' || bydgoszcz_liczba);
+DBMS_OUTPUT.PUT_LINE('Laczna wartosc umow: ' || bydgoszcz_suma || ' zl');
+DBMS_OUTPUT.PUT_LINE('Najdrozszy kurs: ' || bydgoszcz_najdrozszy);
+DBMS_OUTPUT.PUT_LINE('Najpopularniejszy kurs: ' || bydgoszcz_najpop);
+DBMS_OUTPUT.PUT_LINE('');
+DBMS_OUTPUT.PUT_LINE('Miasto: SZCZECIN');
+DBMS_OUTPUT.PUT_LINE('Liczba umow: ' || szczecin_liczba);
+DBMS_OUTPUT.PUT_LINE('Laczna wartosc umow: ' || szczecin_suma || ' zl');
+DBMS_OUTPUT.PUT_LINE('Najdrozszy kurs: ' || szczecin_najdrozszy);
+DBMS_OUTPUT.PUT_LINE('Najpopularniejszy kurs: ' || szczecin_najpop);
+DBMS_OUTPUT.PUT_LINE('');
+DBMS_OUTPUT.PUT_LINE('PODSUMOWANIE');
+DBMS_OUTPUT.PUT_LINE('Liczba wszystkich umow: ' || ( bydgoszcz_liczba + szczecin_liczba ));
+DBMS_OUTPUT.PUT_LINE('Laczna wartosc wszystkich umow: ' || ( bydgoszcz_suma + szczecin_suma ) || ' zl');
+END;
 /
 
-begin
-    raport_uczelni;
-end;
+BEGIN
+raport_uczelni;
+END;
 /
