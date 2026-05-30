@@ -20,14 +20,15 @@ END;
 DECLARE
 suma NUMBER;
 BEGIN
-SELECT SUM(r.cena)
+SELECT NVL(SUM(r.cena), 0)
 INTO suma
 FROM umowy u,
 kursy  k,
 rodzaje r
 WHERE u.kurs_id = k.kurs_id
-AND k.rodzaj_id = r.rodzaj_id;
-
+AND k.rodzaj_id = r.rodzaj_id
+AND u.miasto = 'BYDGOSZCZ';
+ 
 DBMS_OUTPUT.PUT_LINE('Laczna wartosc umow dla BYDGOSZCZY: ' || suma || ' zl');
 END;
 /
